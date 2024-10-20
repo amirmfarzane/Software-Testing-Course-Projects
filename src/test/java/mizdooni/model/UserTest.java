@@ -23,7 +23,7 @@ class UserTest {
         User manager = new User("managerUser", "managerPass", "manager@example.com", address, User.Role.manager);
 
         restaurant = new Restaurant(
-                "Test Restaurant",
+                "Shila fastfood",
                 manager,
                 "Fastfood",
                 LocalTime.of(9, 0),
