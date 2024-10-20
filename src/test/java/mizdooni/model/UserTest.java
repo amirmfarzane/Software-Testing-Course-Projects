@@ -77,4 +77,35 @@ class UserTest {
         assertFalse(user.checkReserved(anotherRestaurant));
     }
 
+    @ParameterizedTest
+    @DisplayName("Parameterized Test: Checking User Password")
+    @CsvSource({
+            "userPass, true",
+            "wrongPass, false"
+    })
+    public void testCheckPassword(String input, boolean expected) {
+        assertEquals(expected, user.checkPassword(input));
+    }
+
+    @Test
+    @DisplayName("Test: Getting Reservation by Number")
+    public void testGetReservation() {
+        Table table1 = new Table(1, restaurant.getId(), 4);
+        Table table2 = new Table(2, restaurant.getId(), 6);
+        restaurant.addTable(table1);
+        restaurant.addTable(table2);
+
+        LocalDateTime reservationDateTime1 = LocalDateTime.of(2024, 10, 26, 20, 0);
+        LocalDateTime reservationDateTime2 = LocalDateTime.of(2024, 10, 27, 21, 0);
+
+        Reservation reservation1 = new Reservation(user, restaurant, table1, reservationDateTime1);
+        Reservation reservation2 = new Reservation(user, restaurant, table2, reservationDateTime2);
+
+        user.addReservation(reservation1);
+        user.addReservation(reservation2);
+
+        assertNotNull(user.getReservation(0));
+        assertNotNull(user.getReservation(1));
+        assertNull(user.getReservation(2));
+    }
 }
