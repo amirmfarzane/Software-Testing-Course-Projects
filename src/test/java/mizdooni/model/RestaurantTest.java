@@ -62,4 +62,19 @@ class RestaurantTest {
         restaurant.getTables().clear();
     }
 
+    @Test
+    @DisplayName("Test: Checking restaurant get tables fails when table not exists")
+    public void testgetTableFindSuccessfuly(){
+        int seatsNumber = 4;
+        Table table = new Table(1, restaurant.getId(), seatsNumber);
+        restaurant.addTable(table);
+        assertEquals(table, restaurant.getTable(1));
+    }
+
+    @Test
+    @DisplayName("Test: Checking restaurant get tables return true object")
+    public void testGetTableTableNotExists(){
+        assertEquals(null, restaurant.getTable(1));
+    }
+
 }

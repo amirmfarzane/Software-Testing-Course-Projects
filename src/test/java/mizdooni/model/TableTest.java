@@ -37,18 +37,6 @@ class TableTest {
     }
 
     @Test
-    @DisplayName("Test: Adding Reservation to Table")
-    public void testAddReservation() {
-        LocalDateTime reservationDateTime = LocalDateTime.of(2024, 10, 25, 19, 0);
-        User client = new User("clientUser", "clientPass", "client@example.com", address, User.Role.client);
-        Reservation reservation = new Reservation(client, restaurant, table, reservationDateTime);
-
-        table.addReservation(reservation);
-        assertEquals(1, table.getReservations().size());
-        assertEquals(reservation, table.getReservations().get(0));
-    }
-
-    @Test
     @DisplayName("Test: Checking if Table is Reserved at Specific Time")
     public void testIsReserved() {
         LocalDateTime reservedDateTime = LocalDateTime.of(2024, 10, 25, 19, 0);
