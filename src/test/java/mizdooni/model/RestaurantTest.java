@@ -2,15 +2,14 @@ package mizdooni.model;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
-import java.util.stream.Stream;
 
 class RestaurantTest {
 
@@ -44,8 +43,6 @@ class RestaurantTest {
 
         assertEquals(1, restaurant.getTables().size());
         assertEquals(1, table.getTableNumber());
-        assertEquals(null, restaurant.getTable(3));
-        assertEquals(table, restaurant.getTable(1));
     }
 
     @ParameterizedTest
@@ -64,7 +61,7 @@ class RestaurantTest {
 
     @Test
     @DisplayName("Test: Checking restaurant get tables fails when table not exists")
-    public void testgetTableFindSuccessfuly(){
+    public void testGetTableFindSuccessfully(){
         int seatsNumber = 4;
         Table table = new Table(1, restaurant.getId(), seatsNumber);
         restaurant.addTable(table);
@@ -75,6 +72,52 @@ class RestaurantTest {
     @DisplayName("Test: Checking restaurant get tables return true object")
     public void testGetTableTableNotExists(){
         assertEquals(null, restaurant.getTable(1));
+    }
+
+    @Test
+    @DisplayName("Test: Getting Maximum Seats Number")
+    public void testGetMaxSeatsNumber() {
+        Table table1 = new Table(0, restaurant.getId(), 4);
+        Table table2 = new Table(0, restaurant.getId(), 8);
+        Table table3 = new Table(0, restaurant.getId(), 6);
+
+        restaurant.addTable(table1);
+        restaurant.addTable(table2);
+        restaurant.addTable(table3);
+
+        int maxSeats = restaurant.getMaxSeatsNumber();
+        assertEquals(8, maxSeats);
+    }
+
+    @Test
+    @DisplayName("Test: Getting Star Count Based on Average Rating")
+    public void testGetStarCount() {
+        User client1 = new User("client1", "clientPass1", "client1@example.com", address, User.Role.client);
+        User client2 = new User("client2", "clientPass2", "client2@example.com", address, User.Role.client);
+
+        Rating ratingReview1 = new Rating();
+        Rating ratingReview2 = new Rating();
+        LocalDateTime reviewDateTime1 = LocalDateTime.of(2024, 10, 25, 19, 0);
+        LocalDateTime reviewDateTime2 = LocalDateTime.of(2024, 10, 02, 19, 0);
+
+        ratingReview1.food += 4;
+        ratingReview1.service += 5;
+        ratingReview1.ambiance += 3;
+        ratingReview1.overall += 4;
+
+        ratingReview1.food += 3;
+        ratingReview1.service += 4;
+        ratingReview1.ambiance += 5;
+        ratingReview1.overall += 3;
+
+        Review review1 = new Review(client1, ratingReview1, "Was delicious!", reviewDateTime1);
+        Review review2 = new Review(client2, ratingReview2, "Was so delicious!", reviewDateTime2);
+
+        restaurant.addReview(review1);
+        restaurant.addReview(review2);
+
+        int starCount = restaurant.getStarCount();
+        assertEquals(4, starCount);
     }
 
 }
