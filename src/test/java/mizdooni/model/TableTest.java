@@ -19,10 +19,8 @@ class TableTest {
     void setUp() {
         address = new Address("Enghelab Square", "Tehran", "12345");
 
-        // Creating a manager user for the restaurant
         manager = new User("managerUser", "managerPass", "manager@example.com", address, User.Role.manager);
 
-        // Setting up a restaurant with the manager
         restaurant = new Restaurant(
                 "Shila fastfood",
                 manager,
@@ -34,7 +32,6 @@ class TableTest {
                 "imageLink.jpg"
         );
 
-        
         table = new Table(1, restaurant.getId(), 4);
         restaurant.addTable(table);
     }
@@ -42,7 +39,6 @@ class TableTest {
     @Test
     @DisplayName("Test: Adding Reservation to Table")
     public void testAddReservation() {
-
         LocalDateTime reservationDateTime = LocalDateTime.of(2024, 10, 25, 19, 0);
         User client = new User("clientUser", "clientPass", "client@example.com", address, User.Role.client);
         Reservation reservation = new Reservation(client, restaurant, table, reservationDateTime);
@@ -52,5 +48,18 @@ class TableTest {
         assertEquals(reservation, table.getReservations().get(0));
     }
 
+    @Test
+    @DisplayName("Test: Checking if Table is Reserved at Specific Time")
+    public void testIsReserved() {
+        LocalDateTime reservedDateTime = LocalDateTime.of(2024, 10, 25, 19, 0);
+        LocalDateTime nonReservedDateTime = LocalDateTime.of(2024, 10, 26, 19, 0);
 
+        User client = new User("clientUser", "clientPass", "client@example.com", address, User.Role.client);
+        Reservation reservation = new Reservation(client, restaurant, table, reservedDateTime);
+        table.addReservation(reservation);
+
+        assertTrue(table.isReserved(reservedDateTime));
+
+        assertFalse(table.isReserved(nonReservedDateTime));
+    }
 }
