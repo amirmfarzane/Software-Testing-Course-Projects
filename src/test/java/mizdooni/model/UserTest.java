@@ -50,4 +50,31 @@ class UserTest {
         assertEquals(0, reservation.getReservationNumber());
     }
 
+    @Test
+    @DisplayName("Test: Checking if User Has Reserved a Restaurant")
+    public void testCheckReserved() {
+        Table table = new Table(1, restaurant.getId(), 4);
+        restaurant.addTable(table);
+
+        LocalDateTime pastDateTime = LocalDateTime.of(2024, 10, 15, 18, 0);
+        Reservation reservation = new Reservation(user, restaurant, table, pastDateTime);
+
+        user.addReservation(reservation);
+
+        assertTrue(user.checkReserved(restaurant));
+
+        Restaurant anotherRestaurant = new Restaurant(
+                "Italian Restaurant",
+                new User("anotherManager", "anotherPass", "another@example.com", address, User.Role.manager),
+                "Italian",
+                LocalTime.of(8, 0),
+                LocalTime.of(22, 0),
+                "Italian dining experience",
+                address,
+                "imageLink2.jpg"
+        );
+
+        assertFalse(user.checkReserved(anotherRestaurant));
+    }
+
 }
