@@ -122,7 +122,7 @@ class UserTest {
 
     @Test
     @DisplayName("Test: Getting Reservation by Number")
-    public void testGetReservation() {
+    public void testGetReservationByNumber() {
         Table table1 = new Table(1, restaurant.getId(), 4);
         Table table2 = new Table(2, restaurant.getId(), 6);
         restaurant.addTable(table1);
@@ -141,4 +141,20 @@ class UserTest {
         assertNotNull(user.getReservation(1));
         assertNull(user.getReservation(2));
     }
+
+    @Test
+    @DisplayName("Test: Getting Reservation When It Is Cancelled")
+    public void testGetReservationWhenCancelled() {
+        Table table = new Table(1, restaurant.getId(), 4);
+        restaurant.addTable(table);
+
+        LocalDateTime reservationDateTime = LocalDateTime.of(2024, 10, 26, 20, 0);
+        Reservation reservation = new Reservation(user, restaurant, table, reservationDateTime);
+
+        user.addReservation(reservation);
+        reservation.cancel();
+
+        assertNull(user.getReservation(0));
+    }
+
 }
