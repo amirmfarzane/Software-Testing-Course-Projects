@@ -90,6 +90,42 @@ class RestaurantTest {
     }
 
     @Test
+    @DisplayName("Test: Calculating Average Rating")
+    public void testGetAverageRating() {
+        User client1 = new User("client1", "clientPass1", "client1@example.com", address, User.Role.client);
+        User client2 = new User("client2", "clientPass2", "client2@example.com", address, User.Role.client);
+
+        Rating ratingReview1 = new Rating();
+        Rating ratingReview2 = new Rating();
+        LocalDateTime reviewDateTime1 = LocalDateTime.of(2024, 10, 25, 19, 0);
+        LocalDateTime reviewDateTime2 = LocalDateTime.of(2024, 10, 02, 19, 0);
+
+        ratingReview1.food += 4;
+        ratingReview1.service += 5;
+        ratingReview1.ambiance += 3;
+        ratingReview1.overall += 4;
+
+        ratingReview1.food += 3;
+        ratingReview1.service += 4;
+        ratingReview1.ambiance += 5;
+        ratingReview1.overall += 3;
+
+        Review review1 = new Review(client1, ratingReview1, "Was delicious!", reviewDateTime1);
+        Review review2 = new Review(client2, ratingReview2, "Was so delicious!", reviewDateTime2);
+
+        restaurant.addReview(review1);
+        restaurant.addReview(review2);
+
+        Rating averageRating = restaurant.getAverageRating();
+
+        float error_value = 0.01F;
+        assertEquals(3.5, averageRating.food, error_value);
+        assertEquals(4.5, averageRating.service, error_value);
+        assertEquals(4.0, averageRating.ambiance, error_value);
+        assertEquals(3.5, averageRating.overall, error_value);
+    }
+
+    @Test
     @DisplayName("Test: Getting Star Count Based on Average Rating")
     public void testGetStarCount() {
         User client1 = new User("client1", "clientPass1", "client1@example.com", address, User.Role.client);
