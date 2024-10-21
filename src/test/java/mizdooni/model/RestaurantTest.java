@@ -43,16 +43,6 @@ class RestaurantTest {
         reviewComment = "Was delicious!";
     }
 
-    @Test
-    @DisplayName("Test: Adding a Table to Restaurant")
-    public void testAddTable() {
-        Table table = new Table(3, restaurant.getId(), 4);
-        restaurant.addTable(table);
-
-        assertEquals(1, restaurant.getTables().size());
-        assertEquals(1, table.getTableNumber());
-    }
-
     @ParameterizedTest
     @DisplayName("Parameterized Test: Adding Tables with Different Seat Numbers")
     @ValueSource(ints = {2, 4, 6, 8})
@@ -81,8 +71,6 @@ class RestaurantTest {
     public void testGetTableTableNotExists(){
         assertEquals(null, restaurant.getTable(1));
     }
-
-
 
     @Test
     @DisplayName("Test: Getting Maximum Seats Number")

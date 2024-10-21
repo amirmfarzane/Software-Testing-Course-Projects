@@ -116,10 +116,10 @@ class UserTest {
             "userPass, true",
             "wrongPass, false"
     })
+
     public void testCheckPassword(String input, boolean expected) {
         assertEquals(expected, user.checkPassword(input));
     }
-
     @Test
     @DisplayName("Test: Getting Reservation by Number")
     public void testGetReservationByNumber() {
@@ -156,5 +156,4 @@ class UserTest {
 
         assertNull(user.getReservation(0));
     }
-
 }

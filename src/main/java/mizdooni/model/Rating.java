@@ -17,6 +17,7 @@ public class Rating {
         this.overall = overall;
     }
 
+
     public int getStarCount() {
         return (int) Math.min(Math.round(overall), 5);
     }
