@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,9 @@ class RestaurantTest {
     private Restaurant restaurant;
     private Address address;
     private User manager;
+    private LocalDateTime reviewDateTime1;
+    private LocalDateTime reviewDateTime2;
+    private String reviewComment;
 
     @BeforeEach
     void setUp() {
@@ -33,6 +37,10 @@ class RestaurantTest {
                 address,
                 "imageLink.jpg"
         );
+
+        reviewDateTime1 = LocalDateTime.of(2024, 10, 25, 19, 0);
+        reviewDateTime2 = LocalDateTime.of(2024, 10, 02, 19, 0);
+        reviewComment = "Was delicious!";
     }
 
     @Test
@@ -74,6 +82,8 @@ class RestaurantTest {
         assertEquals(null, restaurant.getTable(1));
     }
 
+
+
     @Test
     @DisplayName("Test: Getting Maximum Seats Number")
     public void testGetMaxSeatsNumber() {
@@ -97,11 +107,9 @@ class RestaurantTest {
 
         Rating ratingReview1 = new Rating(4, 5, 3, 4);
         Rating ratingReview2 = new Rating(3, 4, 5, 3);
-        LocalDateTime reviewDateTime1 = LocalDateTime.of(2024, 10, 25, 19, 0);
-        LocalDateTime reviewDateTime2 = LocalDateTime.of(2024, 10, 02, 19, 0);
 
-        Review review1 = new Review(client1, ratingReview1, "Was delicious!", reviewDateTime1);
-        Review review2 = new Review(client2, ratingReview2, "Was so delicious!", reviewDateTime2);
+        Review review1 = new Review(client1, ratingReview1, reviewComment, reviewDateTime1);
+        Review review2 = new Review(client2, ratingReview2, reviewComment, reviewDateTime2);
 
         restaurant.addReview(review1);
         restaurant.addReview(review2);
@@ -123,17 +131,51 @@ class RestaurantTest {
 
         Rating ratingReview1 = new Rating(4, 5, 3, 4);
         Rating ratingReview2 = new Rating(3, 4, 5, 3);
-        LocalDateTime reviewDateTime1 = LocalDateTime.of(2024, 10, 25, 19, 0);
-        LocalDateTime reviewDateTime2 = LocalDateTime.of(2024, 10, 02, 19, 0);
 
-        Review review1 = new Review(client1, ratingReview1, "Was delicious!", reviewDateTime1);
-        Review review2 = new Review(client2, ratingReview2, "Was so delicious!", reviewDateTime2);
+        Review review1 = new Review(client1, ratingReview1, reviewComment, reviewDateTime1);
+        Review review2 = new Review(client2, ratingReview2, reviewComment, reviewDateTime2);
 
         restaurant.addReview(review1);
         restaurant.addReview(review2);
 
         int starCount = restaurant.getStarCount();
         assertEquals(4, starCount);
+    }
+
+    @ParameterizedTest
+    @DisplayName("Parameterized Test: Adding and Updating Review for Restaurant")
+    @CsvSource({
+            "5, 5, 5, 5, 1, 1, 1, 1",
+            "3, 2, 4, 5, 5, 5, 5, 5",
+            "1, 1, 1, 1, 5, 2, 3, 1",
+            "5, 4, 3, 2, 2, 3, 4, 5",
+            "2, 3, 2, 4, 2, 3, 2, 4",
+            "4, 3, 5, 2, 4, 3, 5, 1"
+    })
+
+    public void testAddAndUpdateReview(int initialFood, int initialService, int initialAmbiance, int initialOverall,
+                                       int updatedFood, int updatedService, int updatedAmbiance, int updatedOverall) {
+        User client = new User("clientUser", "clientPass", "client@example.com", address, User.Role.client);
+        Rating initialRating = new Rating(initialFood, initialService, initialAmbiance, initialOverall);
+
+        Review initialReview = new Review(client, initialRating, reviewComment, reviewDateTime1);
+        restaurant.addReview(initialReview);
+
+        assertEquals(1, restaurant.getReviews().size());
+        assertEquals(initialReview, restaurant.getReviews().get(0));
+
+        Rating updatedRating = new Rating(updatedFood, updatedService, updatedAmbiance, updatedOverall);
+        Review updatedReview = new Review(client, updatedRating, reviewComment, reviewDateTime2);
+        restaurant.addReview(updatedReview);
+
+        assertEquals(1, restaurant.getReviews().size());
+        assertEquals(updatedReview, restaurant.getReviews().get(0));
+
+        updatedRating = restaurant.getReviews().get(0).getRating();
+        assertEquals(updatedFood, updatedRating.food);
+        assertEquals(updatedService, updatedRating.service);
+        assertEquals(updatedAmbiance, updatedRating.ambiance);
+        assertEquals(updatedOverall, updatedRating.overall);
     }
 
 }
