@@ -52,7 +52,7 @@ class UserTest {
 
     @Test
     @DisplayName("Test: Checking if User Has Reserved a Restaurant")
-    public void testCheckReserved() {
+    public void testCheckReservedWhenUserReservedAnotherRestaurant() {
         Table table = new Table(1, restaurant.getId(), 4);
         restaurant.addTable(table);
 
@@ -75,6 +75,39 @@ class UserTest {
         );
 
         assertFalse(user.checkReserved(anotherRestaurant));
+    }
+
+    @Test
+    @DisplayName("Test: Checking if Reservation is Cancelled")
+    public void testCheckReservedWhenReservationIsCancelled() {
+        Table table = new Table(1, restaurant.getId(), 4);
+        restaurant.addTable(table);
+
+        LocalDateTime pastDateTime = LocalDateTime.of(2024, 10, 15, 18, 0);
+        Reservation reservation = new Reservation(user, restaurant, table, pastDateTime);
+
+        user.addReservation(reservation);
+        reservation.cancel();
+
+        assertFalse(user.checkReserved(restaurant));
+    }
+
+    @ParameterizedTest
+    @DisplayName("Parameterized Test: Checking if Reservation Date is in the Current Time or Future")
+    @CsvSource({
+            "0, true", // no offset from today
+            "3, false"  // 3 days offset
+    })
+    public void testCheckReservedWhenReservationDateIsInCurrentOrFuture(int daysOffset, boolean expectedResult) {
+        Table table = new Table(1, restaurant.getId(), 4);
+        restaurant.addTable(table);
+
+        LocalDateTime reservationDateTime = LocalDateTime.now().plusDays(daysOffset);
+        Reservation reservation = new Reservation(user, restaurant, table, reservationDateTime);
+
+        user.addReservation(reservation);
+
+        assertEquals(expectedResult, user.checkReserved(restaurant));
     }
 
     @ParameterizedTest
