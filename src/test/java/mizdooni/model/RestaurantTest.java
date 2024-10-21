@@ -73,6 +73,13 @@ class RestaurantTest {
     }
 
     @Test
+    @DisplayName("Test: Getting Maximum Seats Number When No Table exists")
+    public void testGetMaxSeatsNumberWhenNotTableExists() {
+        int maxSeats = restaurant.getMaxSeatsNumber();
+        assertEquals(0, maxSeats);
+    }
+
+    @Test
     @DisplayName("Test: Getting Maximum Seats Number")
     public void testGetMaxSeatsNumber() {
         Table table1 = new Table(0, restaurant.getId(), 4);

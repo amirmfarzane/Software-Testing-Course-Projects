@@ -14,15 +14,16 @@ public class RatingTest {
     @ParameterizedTest
     @DisplayName("Parameterized Test: Checking Get Star Count for Different Overall Ratings")
     @CsvSource({
-            "4.2, 4",
-            "5.0, 5",
-            "6.7, 5",
-            "4.0, 4",
-            "3.9, 4",
-            "5.5, 5",
+            "0.1, 0",
+            "1, 1",
             "2.5, 3",
+            "4, 4",
+            "4.2, 4",
             "4.8, 5",
-            "1.0, 1"
+            "5, 5",
+            "5.5, 5",
+            "6.7, 5",
+            "7, 5"
     })
     public void testGetStarCount(double overall, int expectedStarCount) {
         Rating rating = new Rating(4.0, 3.5, 4.2, overall);
