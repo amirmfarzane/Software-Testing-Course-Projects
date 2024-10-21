@@ -38,7 +38,7 @@ public class Restaurant {
     }
 
     public void addTable(Table table) {
-        table.setTableNumber(tables.size() + 1);
+        table.setTableNumber(tables.size() + 1); // table number be dard nemikhore !
         tables.add(table);
     }
 
