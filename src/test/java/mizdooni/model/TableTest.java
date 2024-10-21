@@ -14,6 +14,7 @@ class TableTest {
     private Address address;
     private Restaurant restaurant;
     private User manager;
+    private User client;
 
     @BeforeEach
     void setUp() {
@@ -31,6 +32,8 @@ class TableTest {
                 address,
                 "imageLink.jpg"
         );
+        client = new User("clientUser", "clientPass", "client@example.com", address, User.Role.client);
+
 
         table = new Table(1, restaurant.getId(), 4);
         restaurant.addTable(table);
@@ -42,12 +45,23 @@ class TableTest {
         LocalDateTime reservedDateTime = LocalDateTime.of(2024, 10, 25, 19, 0);
         LocalDateTime nonReservedDateTime = LocalDateTime.of(2024, 10, 26, 19, 0);
 
-        User client = new User("clientUser", "clientPass", "client@example.com", address, User.Role.client);
         Reservation reservation = new Reservation(client, restaurant, table, reservedDateTime);
         table.addReservation(reservation);
 
         assertTrue(table.isReserved(reservedDateTime));
 
         assertFalse(table.isReserved(nonReservedDateTime));
+    }
+
+    @Test
+    @DisplayName("Test: Checking if Table is Reserved when Reservation is Cancelled")
+    public void testIsReservedWhenCancelled() {
+        LocalDateTime reservationDateTime = LocalDateTime.of(2024, 10, 25, 19, 0);
+        Reservation reservation = new Reservation(client, restaurant, table, reservationDateTime);
+        table.addReservation(reservation);
+
+        reservation.cancel();
+
+        assertFalse(table.isReserved(reservationDateTime));
     }
 }
