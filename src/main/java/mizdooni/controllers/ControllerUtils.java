@@ -38,7 +38,7 @@ public class ControllerUtils {
         return true;
     }
 
-    static Restaurant checkRestaurant(int restaurantId, RestaurantService service) {
+    static Restaurant checkRestaurant(int restaurantId, RestaurantService service) throws ResponseException{
         Restaurant restaurant = service.getRestaurant(restaurantId);
         if (restaurant == null) {
             throw new ResponseException(HttpStatus.NOT_FOUND, "restaurant not found");

@@ -24,8 +24,8 @@ class TableController {
 
     @GetMapping("/tables/{restaurantId}")
     public Response getTables(@PathVariable int restaurantId) {
-        ControllerUtils.checkRestaurant(restaurantId, restaurantService);
         try {
+            ControllerUtils.checkRestaurant(restaurantId, restaurantService);
             List<Table> tables = tableService.getTables(restaurantId);
             return Response.ok("tables listed", tables);
         } catch (Exception ex) {

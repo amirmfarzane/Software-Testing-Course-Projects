@@ -34,6 +34,18 @@ public class Response {
         return new Response(HttpStatus.OK, message, true, null, null);
     }
 
+    public HttpStatus getStatus() {
+        return this.status;     
+    }
+
+    public String getMessage() {
+        return this.message;
+    }
+    
+    public Object getData() {
+        return data;
+    }
+
     public static Response ok(String message, Object data) {
         return new Response(HttpStatus.OK, message, true, null, data);
     }
