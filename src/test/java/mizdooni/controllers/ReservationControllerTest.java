@@ -2,14 +2,10 @@ package mizdooni.controllers;
 
 import static mizdooni.controllers.ControllerUtils.PARAMS_BAD_TYPE;
 import static mizdooni.controllers.ControllerUtils.PARAMS_MISSING;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import mizdooni.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +39,9 @@ import mizdooni.service.RestaurantService;
 public class ReservationControllerTest {
     @Mock
     RestaurantService restaurantService;
+
+    @Mock
+    UserService userService;
 
     @Mock
     ReservationService reservationService;
@@ -76,27 +76,31 @@ public class ReservationControllerTest {
     }
 
     @Test
-    void testGetReservations_Success() {
+    void testGetReservations_Success() throws Exception {
         int tableId = 5;
-        Table table = new Table(tableId,restaurant.getId(),4);
+        Table table = new Table(tableId, restaurant.getId(), 4);
         restaurant.addTable(table);
         String date = "2023-11-01";
         LocalDate localDate = LocalDate.parse(date, ControllerUtils.DATE_FORMATTER);
-        // customer.addReservation(reservation);
+
+        User user = new User("testUser", "password", "user@example.com", address, User.Role.client);
+        LocalDateTime dateTime1 = LocalDateTime.of(2023, 11, 1, 12, 0);
+        LocalDateTime dateTime2 = LocalDateTime.of(2023, 11, 1, 13, 0);
 
         List<Reservation> reservations = Arrays.asList(
-            new Reservation(any(User.class), any(Restaurant.class), any(Table.class), any(LocalDateTime.class)),
-            new Reservation(any(User.class), any(Restaurant.class), any(Table.class), any(LocalDateTime.class)));
-        
-        try {
-            when(reservationService.getReservations(restaurant.getId(), tableId, localDate)).thenReturn(reservations);
-            Response response = reservationController.getReservations(restaurant.getId(), tableId, date);
-            assertEquals("restaurant table reservations", response.getMessage());
-            assertEquals(reservations, response.getData());
-        } catch (Exception e) {
-            assertEquals("restaurant table reservations", e.getMessage());
-        }
+                new Reservation(user, restaurant, table, dateTime1),
+                new Reservation(user, restaurant, table, dateTime2)
+        );
+
+        when(reservationService.getReservations(restaurant.getId(), tableId, localDate)).thenReturn(reservations);
+        when(restaurantService.getRestaurant(restaurant.getId())).thenReturn(restaurant);
+        Response response = reservationController.getReservations(restaurant.getId(), tableId, date);
+        assertEquals("restaurant table reservations", response.getMessage());
+        assertEquals(reservations, response.getData());
+
+        verify(reservationService).getReservations(restaurant.getId(), tableId, localDate);
     }
+
 
     @Test
     void testGetReservations_InvalidDateFormat() {
@@ -111,21 +115,33 @@ public class ReservationControllerTest {
     }
 
     @Test
-    void testGetCustomerReservations_Success() {
-        List<Reservation> reservations = Arrays.asList(
-            new Reservation(any(User.class), any(Restaurant.class), any(Table.class), any(LocalDateTime.class)),
-            new Reservation(any(User.class), any(Restaurant.class), any(Table.class), any(LocalDateTime.class)));
-        try{
-            when(reservationService.getCustomerReservations(customer.getId())).thenReturn(reservations);
-            Response response = reservationController.getCustomerReservations(customer.getId());
-            assertEquals("user reservations", response.getMessage());
-            assertEquals(reservations, response.getData());
-        }
-        catch(Exception e){
-            assertEquals("user reservations", e.getMessage());
+    void testGetCustomerReservations_Success() throws Exception {
 
-        }
+        LocalDateTime dateTime1 = LocalDateTime.now();
+        LocalDateTime dateTime2 = dateTime1.plusDays(1);
+
+
+        Table table = new Table(1, restaurant.getId(), 4);
+
+
+        Reservation reservation1 = new Reservation(customer, restaurant, table, dateTime1);
+        Reservation reservation2 = new Reservation(customer, restaurant, table, dateTime2);
+
+        List<Reservation> reservations = Arrays.asList(reservation1, reservation2);
+
+
+        when(reservationService.getCustomerReservations(customer.getId())).thenReturn(reservations);
+
+
+        Response response = reservationController.getCustomerReservations(customer.getId());
+
+
+        assertNotNull(response);
+        assertEquals("user reservations", response.getMessage());
+        assertEquals(reservations, response.getData());
+        verify(reservationService).getCustomerReservations(customer.getId());
     }
+
 
     @Test
     void testGetAvailableTimes_Success() {
@@ -160,26 +176,31 @@ public class ReservationControllerTest {
     }
 
     @Test
-    void testAddReservation_Success() {
+    void testAddReservation_Success() throws Exception {
         int restaurantId = 1;
         Map<String, String> params = new HashMap<>();
         params.put("people", "4");
-        params.put("datetime", "2023-11-01T18:00");
+        params.put("datetime", "2023-11-01 18:00");
 
-        int people = 4;
-        LocalDateTime datetime = LocalDateTime.parse("2023-11-01T18:00", ControllerUtils.DATETIME_FORMATTER);
+        int people = Integer.parseInt(params.get("people"));
+        LocalDateTime datetime = LocalDateTime.of(2023, 11, 1, 18, 0);
 
         Reservation reservation = new Reservation(manager, restaurant, new Table(12, restaurantId, 5), datetime);
-        try {
-            when(reservationService.reserveTable(restaurantId, people, datetime)).thenReturn(reservation);
-            Response response = reservationController.addReservation(restaurantId, params);
-            assertEquals("reservation done", response.getMessage());
-            assertEquals(reservation, response.getData());
-            
-        } catch (Exception e) {
-            assertEquals("reservation done", e.getMessage());
-        }
+
+        when(restaurantService.getRestaurant(restaurantId)).thenReturn(restaurant);
+        when(reservationService.reserveTable(restaurantId, people, datetime)).thenReturn(reservation);
+        lenient().when(userService.getCurrentUser()).thenReturn(manager);
+
+        Response response = reservationController.addReservation(restaurantId, params);
+        assertNotNull(response);
+        assertEquals("reservation done", response.getMessage());
+        assertEquals(reservation, response.getData());
+
+        verify(restaurantService).getRestaurant(restaurantId);
+        verify(reservationService).reserveTable(restaurantId, people, datetime);
     }
+
+
 
     @Test
     void testAddReservation_MissingParams() {
@@ -208,16 +229,17 @@ public class ReservationControllerTest {
     }
 
     @Test
-    void testCancelReservation_Success() {
+    void testCancelReservation_Success() throws Exception {
         int reservationNumber = 123;
 
-        when(reservationController.cancelReservation(reservationNumber)).thenReturn(null)
+        doNothing().when(reservationService).cancelReservation(reservationNumber);
+
         Response response = reservationController.cancelReservation(reservationNumber);
 
+        assertNotNull(response);
         assertEquals("reservation cancelled", response.getMessage());
         verify(reservationService, times(1)).cancelReservation(reservationNumber);
     }
-
     @Test
     void testCancelReservation_Exception() {
         int reservationNumber = 123;
