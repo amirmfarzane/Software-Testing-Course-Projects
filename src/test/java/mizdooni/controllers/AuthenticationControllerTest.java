@@ -2,10 +2,7 @@ package mizdooni.controllers;
 
 import static mizdooni.controllers.ControllerUtils.PARAMS_MISSING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
@@ -25,11 +22,11 @@ import mizdooni.model.User;
 import mizdooni.model.User.Role;
 import mizdooni.response.Response;
 import mizdooni.response.ResponseException;
-import mizdooni.service.ServiceUtils;
 import mizdooni.service.UserService;
 
 @ExtendWith(MockitoExtension.class)
 public class AuthenticationControllerTest {
+
     User user;
     private Address address;
     private String username;
@@ -43,12 +40,13 @@ public class AuthenticationControllerTest {
     AuthenticationController authenticationController;
 
     @BeforeEach
-    public void setup(){
+    public void setup() {
         address = new Address("Enghelab Square", "Tehran", "12345");
-        user = new User(username,password,email,address, Role.client);
+        user = new User(username, password, email, address, Role.client);
     }
 
     @Test
+    @DisplayName("Test: Successful retrieval of current user")
     public void testUser_Success() {
         when(userService.getCurrentUser()).thenReturn(user);
         Response response = authenticationController.user();
@@ -57,26 +55,26 @@ public class AuthenticationControllerTest {
     }
 
     @Test
+    @DisplayName("Test: Attempt to get current user without login")
     public void testUser_NoUserLoggedIn() {
         when(userService.getCurrentUser()).thenReturn(null);
         ResponseException exception = assertThrows(ResponseException.class, () -> {
             authenticationController.user();
-            }
-        );
+        });
         assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatus());
         assertEquals("no user logged in", exception.getMessage());
     }
 
     @Test
-    @DisplayName("Mew")
+    @DisplayName("Test: Successful logout")
     public void testLogout_Success() throws Exception {
         when(userService.logout()).thenReturn(true);
         Response logoutResponse = authenticationController.logout();
-        assertEquals(logoutResponse.getMessage(), "logout successful");
-        
+        assertEquals("logout successful", logoutResponse.getMessage());
     }
-    
+
     @Test
+    @DisplayName("Test: Successful login with valid credentials")
     public void testLogin_Success() {
         Map<String, String> params = new HashMap<>();
         params.put("username", "user1");
@@ -86,23 +84,23 @@ public class AuthenticationControllerTest {
         when(userService.getCurrentUser()).thenReturn(user);
 
         Response response = authenticationController.login(params);
-
         assertEquals("login successful", response.getMessage());
     }
 
     @Test
+    @DisplayName("Test: Login attempt with missing parameters")
     public void testLogin_MissingParams() {
         Map<String, String> params = new HashMap<>();
 
         ResponseException exception = assertThrows(ResponseException.class, () -> {
             authenticationController.login(params);
-        }
-        );
+        });
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
         assertEquals(PARAMS_MISSING, exception.getMessage());
     }
 
     @Test
+    @DisplayName("Test: Login attempt with invalid credentials")
     public void testLogin_InvalidCredentials() {
         Map<String, String> params = new HashMap<>();
         params.put("username", "user1");
@@ -110,15 +108,15 @@ public class AuthenticationControllerTest {
 
         when(userService.login("user1", "wrongPassword")).thenReturn(false);
 
-        ResponseException exception = assertThrows(ResponseException.class, () -> { 
+        ResponseException exception = assertThrows(ResponseException.class, () -> {
             authenticationController.login(params);
-        }
-        );
+        });
         assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatus());
         assertEquals("invalid username or password", exception.getMessage());
     }
 
     @Test
+    @DisplayName("Test: Successful signup with valid parameters")
     public void testSignup_Success() {
         Map<String, Object> params = new HashMap<>();
         params.put("username", "user1");
@@ -129,15 +127,16 @@ public class AuthenticationControllerTest {
         address.put("city", "City");
         params.put("address", address);
         params.put("role", "client");
+
         when(userService.login("user1", "password")).thenReturn(true);
         when(userService.getCurrentUser()).thenReturn(user);
 
         Response response = authenticationController.signup(params);
-
         assertEquals("signup successful", response.getMessage());
     }
 
     @Test
+    @DisplayName("Test: Signup attempt with missing parameters")
     public void testSignup_MissingParams() {
         Map<String, Object> params = new HashMap<>();
 
@@ -147,6 +146,7 @@ public class AuthenticationControllerTest {
     }
 
     @Test
+    @DisplayName("Test: Logout attempt with no user logged in")
     void testLogout_NoUserLoggedIn() {
         when(userService.logout()).thenReturn(false);
 
@@ -156,48 +156,41 @@ public class AuthenticationControllerTest {
     }
 
     @Test
+    @DisplayName("Test: Validate username - valid format and availability")
     void testValidateUsername_ValidAndAvailable() {
-        Response response;
         String username = "validUsername";
-        try {
-            authenticationController.validateUsername(username);
-            when(userService.usernameExists(username)).thenReturn(false);
-            response = authenticationController.validateUsername(username);
-            assertEquals("username is available", response.getMessage());
-        } catch (Exception e) {
-            assertEquals("username is available", e.getMessage());
-        }
+        when(userService.usernameExists(username)).thenReturn(false);
+
+        Response response = authenticationController.validateUsername(username);
+        assertEquals("username is available", response.getMessage());
     }
 
     @Test
+    @DisplayName("Test: Validate username - invalid format")
     void testValidateUsername_InvalidFormat() {
         String username = "invalid!Username";
-        ResponseException exception;
-        exception = assertThrows(ResponseException.class, () -> authenticationController.validateUsername(username));
+
+        ResponseException exception = assertThrows(ResponseException.class, () -> authenticationController.validateUsername(username));
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
         assertEquals("invalid username format", exception.getMessage());
     }
 
     @Test
+    @DisplayName("Test: Validate email - valid format and not registered")
     void testValidateEmail_ValidAndNotRegistered() {
-        Response response;
         String email = "user1@example.com";
-        try {
-            authenticationController.validateEmail(email);
-            when(userService.emailExists(email)).thenReturn(false);
-            response = authenticationController.validateEmail(email);
-            assertEquals("email not registered", response.getMessage());
-        } catch (Exception e) {
-            assertEquals("email not registered", e.getMessage());
-        }
+        when(userService.emailExists(email)).thenReturn(false);
+
+        Response response = authenticationController.validateEmail(email);
+        assertEquals("email not registered", response.getMessage());
     }
 
     @Test
+    @DisplayName("Test: Validate email - invalid format")
     void testValidateEmail_InvalidFormat() {
-
         String email = "invalid-email";
-        ResponseException exception;
-        exception = assertThrows(ResponseException.class, () -> authenticationController.validateEmail(email));
+
+        ResponseException exception = assertThrows(ResponseException.class, () -> authenticationController.validateEmail(email));
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
         assertEquals("invalid email format", exception.getMessage());
     }

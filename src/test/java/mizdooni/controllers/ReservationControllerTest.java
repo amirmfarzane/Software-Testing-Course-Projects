@@ -17,11 +17,11 @@ import java.util.Map;
 
 import mizdooni.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
@@ -54,7 +54,6 @@ public class ReservationControllerTest {
     private User manager;
     private User customer;
 
-
     @BeforeEach
     public void setup(){
         address = new Address("Enghelab Square", "Tehran", "12345");
@@ -72,10 +71,10 @@ public class ReservationControllerTest {
         );
 
         customer = new User("clientUser", "clientPass", "client@example.com", address, User.Role.client);
-
     }
 
     @Test
+    @DisplayName("Test: Successfully get reservations for restaurant table")
     void testGetReservations_Success() throws Exception {
         int tableId = 5;
         Table table = new Table(tableId, restaurant.getId(), 4);
@@ -101,8 +100,8 @@ public class ReservationControllerTest {
         verify(reservationService).getReservations(restaurant.getId(), tableId, localDate);
     }
 
-
     @Test
+    @DisplayName("Test: Get reservations with invalid date format")
     void testGetReservations_InvalidDateFormat() {
         int restaurantId = 1;
         int table = 5;
@@ -115,26 +114,20 @@ public class ReservationControllerTest {
     }
 
     @Test
+    @DisplayName("Test: Successfully get customer reservations")
     void testGetCustomerReservations_Success() throws Exception {
-
         LocalDateTime dateTime1 = LocalDateTime.now();
         LocalDateTime dateTime2 = dateTime1.plusDays(1);
 
-
         Table table = new Table(1, restaurant.getId(), 4);
-
-
         Reservation reservation1 = new Reservation(customer, restaurant, table, dateTime1);
         Reservation reservation2 = new Reservation(customer, restaurant, table, dateTime2);
 
         List<Reservation> reservations = Arrays.asList(reservation1, reservation2);
 
-
         when(reservationService.getCustomerReservations(customer.getId())).thenReturn(reservations);
 
-
         Response response = reservationController.getCustomerReservations(customer.getId());
-
 
         assertNotNull(response);
         assertEquals("user reservations", response.getMessage());
@@ -142,28 +135,25 @@ public class ReservationControllerTest {
         verify(reservationService).getCustomerReservations(customer.getId());
     }
 
-
     @Test
-    void testGetAvailableTimes_Success() {
+    @DisplayName("Test: Successfully get available reservation times")
+    void testGetAvailableTimes_Success() throws Exception {
         int people = 4;
         String date = "2023-11-01";
         LocalDate localDate = LocalDate.parse(date, ControllerUtils.DATE_FORMATTER);
 
         List<LocalTime> availableTimes = Arrays.asList(LocalTime.of(12, 0), LocalTime.of(13, 0));
-        try {
-            when(restaurantService.getRestaurant(restaurant.getId())).thenReturn(restaurant);
-            when(reservationService.getAvailableTimes(restaurant.getId(), people, localDate)).thenReturn(availableTimes);
+        when(restaurantService.getRestaurant(restaurant.getId())).thenReturn(restaurant);
+        when(reservationService.getAvailableTimes(restaurant.getId(), people, localDate)).thenReturn(availableTimes);
 
-            Response response = reservationController.getAvailableTimes(restaurant.getId(), people, date);
+        Response response = reservationController.getAvailableTimes(restaurant.getId(), people, date);
 
-            assertEquals("available times", response.getMessage());
-            assertEquals(availableTimes, response.getData());
-        } catch (Exception e) {
-            assertEquals("available times", e.getMessage());
-        }
+        assertEquals("available times", response.getMessage());
+        assertEquals(availableTimes, response.getData());
     }
 
     @Test
+    @DisplayName("Test: Get available times with invalid date format")
     void testGetAvailableTimes_InvalidDateFormat() {
         int restaurantId = 1;
         int people = 4;
@@ -176,6 +166,7 @@ public class ReservationControllerTest {
     }
 
     @Test
+    @DisplayName("Test: Successfully add a reservation")
     void testAddReservation_Success() throws Exception {
         int restaurantId = 1;
         Map<String, String> params = new HashMap<>();
@@ -200,9 +191,8 @@ public class ReservationControllerTest {
         verify(reservationService).reserveTable(restaurantId, people, datetime);
     }
 
-
-
     @Test
+    @DisplayName("Test: Add reservation with missing parameters")
     void testAddReservation_MissingParams() {
         int restaurantId = 1;
         Map<String, String> params = new HashMap<>();
@@ -215,6 +205,7 @@ public class ReservationControllerTest {
     }
 
     @Test
+    @DisplayName("Test: Add reservation with invalid datetime format")
     void testAddReservation_InvalidDateFormat() {
         int restaurantId = 1;
         Map<String, String> params = new HashMap<>();
@@ -229,6 +220,7 @@ public class ReservationControllerTest {
     }
 
     @Test
+    @DisplayName("Test: Successfully cancel reservation")
     void testCancelReservation_Success() throws Exception {
         int reservationNumber = 123;
 
@@ -240,19 +232,17 @@ public class ReservationControllerTest {
         assertEquals("reservation cancelled", response.getMessage());
         verify(reservationService, times(1)).cancelReservation(reservationNumber);
     }
-    @Test
-    void testCancelReservation_Exception() {
-        int reservationNumber = 123;
-        try {
-            
-            doThrow(new RuntimeException("error")).when(reservationService).cancelReservation(reservationNumber);
 
-            ResponseException exception = assertThrows(ResponseException.class,
-                    () -> reservationController.cancelReservation(reservationNumber));
-            assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-            assertEquals("error", exception.getMessage());
-        } catch (Exception e) {
-            assertEquals("error", e.getMessage());
-        }
+    @Test
+    @DisplayName("Test: Cancel reservation with exception")
+    void testCancelReservation_Exception() throws Exception {
+        int reservationNumber = 123;
+
+        doThrow(new RuntimeException("error")).when(reservationService).cancelReservation(reservationNumber);
+
+        ResponseException exception = assertThrows(ResponseException.class,
+                () -> reservationController.cancelReservation(reservationNumber));
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("error", exception.getMessage());
     }
 }
