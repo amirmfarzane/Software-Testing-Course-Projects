@@ -46,15 +46,14 @@ public class ReservationControllerTest {
     @Mock
     ReservationService reservationService;
 
-    @Spy
-    ControllerUtils controllerUtils;
-
     @InjectMocks
     ReservationController reservationController;
 
     private Restaurant restaurant;
     private Address address;
     private User manager;
+    private User customer;
+
 
     @BeforeEach
     public void setup(){
@@ -72,25 +71,30 @@ public class ReservationControllerTest {
                 "imageLink.jpg"
         );
 
+        customer = new User("clientUser", "clientPass", "client@example.com", address, User.Role.client);
+
     }
 
     @Test
     void testGetReservations_Success() {
-        int restaurantId = 1;
-        int table = 5;
+        int tableId = 5;
+        Table table = new Table(tableId,restaurant.getId(),4);
+        restaurant.addTable(table);
         String date = "2023-11-01";
         LocalDate localDate = LocalDate.parse(date, ControllerUtils.DATE_FORMATTER);
 
         List<Reservation> reservations = Arrays.asList(
             new Reservation(any(User.class), any(Restaurant.class), any(Table.class), any(LocalDateTime.class)),
             new Reservation(any(User.class), any(Restaurant.class), any(Table.class), any(LocalDateTime.class)));
-
-        when(reservationService.getReservations(restaurantId, table, localDate)).thenReturn(reservations);
-
-        Response response = reservationController.getReservations(restaurantId, table, date);
-
-        assertEquals("restaurant table reservations", response.getMessage());
-        assertEquals(reservations, response.getData());
+        
+        try {
+            when(reservationService.getReservations(restaurant.getId(), tableId, localDate)).thenReturn(reservations);
+            Response response = reservationController.getReservations(restaurant.getId(), tableId, date);
+            assertEquals("restaurant table reservations", response.getMessage());
+            assertEquals(reservations, response.getData());
+        } catch (Exception e) {
+            assertEquals("restaurant table reservations", e.getMessage());
+        }
     }
 
     @Test
@@ -107,17 +111,17 @@ public class ReservationControllerTest {
 
     @Test
     void testGetCustomerReservations_Success() {
-        int customerId = 123;
         List<Reservation> reservations = Arrays.asList(
             new Reservation(any(User.class), any(Restaurant.class), any(Table.class), any(LocalDateTime.class)),
             new Reservation(any(User.class), any(Restaurant.class), any(Table.class), any(LocalDateTime.class)));
         try{
-            when(reservationService.getCustomerReservations(customerId)).thenReturn(reservations);
-            Response response = reservationController.getCustomerReservations(customerId);
+            when(reservationService.getCustomerReservations(customer.getId())).thenReturn(reservations);
+            Response response = reservationController.getCustomerReservations(customer.getId());
             assertEquals("user reservations", response.getMessage());
             assertEquals(reservations, response.getData());
         }
-        catch(Exception ex){
+        catch(Exception e){
+            assertEquals("user reservations", e.getMessage());
 
         }
     }

@@ -69,7 +69,7 @@ public class AuthenticationControllerTest {
 
     @Test
     @DisplayName("Mew")
-    public void logoutSuccessfullyTest() throws Exception {
+    public void testLogout_Success() throws Exception {
         when(userService.logout()).thenReturn(true);
         Response logoutResponse = authenticationController.logout();
         assertEquals(logoutResponse.getMessage(), "logout successful");
@@ -157,7 +157,7 @@ public class AuthenticationControllerTest {
 
     @Test
     void testValidateUsername_ValidAndAvailable() {
-        Response response = null;
+        Response response;
         String username = "validUsername";
         try {
             authenticationController.validateUsername(username);
@@ -165,7 +165,7 @@ public class AuthenticationControllerTest {
             response = authenticationController.validateUsername(username);
             assertEquals("username is available", response.getMessage());
         } catch (Exception e) {
-            assertNotEquals( response, null);
+            assertEquals("username is available", e.getMessage());
         }
     }
 
@@ -180,7 +180,7 @@ public class AuthenticationControllerTest {
 
     @Test
     void testValidateEmail_ValidAndNotRegistered() {
-        Response response = null;
+        Response response;
         String email = "user1@example.com";
         try {
             authenticationController.validateEmail(email);
@@ -188,7 +188,7 @@ public class AuthenticationControllerTest {
             response = authenticationController.validateEmail(email);
             assertEquals("email not registered", response.getMessage());
         } catch (Exception e) {
-            assertNotEquals( response, null);
+            assertEquals("email not registered", e.getMessage());
         }
     }
 
