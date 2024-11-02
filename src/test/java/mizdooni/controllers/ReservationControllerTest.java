@@ -114,6 +114,32 @@ public class ReservationControllerTest {
     }
 
     @Test
+    @DisplayName("Test: Get Reservations - Date Optionality (Date is Null)")
+    void testGetReservations_DateOptionality() throws Exception {
+        int tableId = 5;
+        int restaurantId = restaurant.getId();
+
+        Table table = new Table(tableId, restaurantId, 4);
+        restaurant.addTable(table);
+
+        List<Reservation> reservations = Arrays.asList(
+                new Reservation(customer, restaurant, table, LocalDateTime.now().plusDays(1)),
+                new Reservation(customer, restaurant, table, LocalDateTime.now().plusDays(2))
+        );
+
+        when(restaurantService.getRestaurant(restaurantId)).thenReturn(restaurant);
+        when(reservationService.getReservations(restaurantId, tableId, null)).thenReturn(reservations);
+
+        Response response = reservationController.getReservations(restaurantId, tableId, null);
+
+        assertNotNull(response);
+        assertEquals("restaurant table reservations", response.getMessage());
+        assertEquals(reservations, response.getData());
+
+        verify(reservationService).getReservations(restaurantId, tableId, null);
+    }
+
+    @Test
     @DisplayName("Test: Successfully get customer reservations")
     void testGetCustomerReservations_Success() throws Exception {
         LocalDateTime dateTime1 = LocalDateTime.now();
