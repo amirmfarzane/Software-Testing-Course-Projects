@@ -6,10 +6,12 @@ import mizdooni.response.Response;
 import mizdooni.response.ResponseException;
 import mizdooni.service.RestaurantService;
 import mizdooni.service.ReviewService;
+import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -160,5 +162,54 @@ class ReviewControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
         assertEquals("bad parameter type", exception.getMessage());
         verify(reviewService, never()).addReview(anyInt(), any(Rating.class), anyString());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            //null
+            "null, 4.0, 3.0, 4.5",
+            "4.0, null, 3.0, 4.5",
+            "4.0, 4.0, null, 4.5",
+            "4.0, 4.0, 3.0, null",
+            //string
+            "invalid, 4.0, 3.0, 4.5",
+            "4.0, invalid, 3.0, 4.5",
+            "4.0, 4.0, invalid, 4.5",
+            "4.0, 4.0, 3.0, invalid"
+    })
+    @DisplayName("Test: Add Review to Restaurant - Invalid Rating Values")
+    void testAddReview_InvalidRatingValues(String foodStr, String serviceStr, String ambianceStr, String overallStr) throws Exception {
+        int restaurantId = restaurant.getId();
+        Map<String, Object> params = new HashMap<>();
+        params.put("comment", "Review with invalid ratings.");
+
+        Map<String, Number> ratingMap = new HashMap<>();
+        Double food = parseDoubleOrNull(foodStr);
+        Double service = parseDoubleOrNull(serviceStr);
+        Double ambiance = parseDoubleOrNull(ambianceStr);
+        Double overall = parseDoubleOrNull(overallStr);
+
+        if (food != null) ratingMap.put("food", food);
+        if (service != null) ratingMap.put("service", service);
+        if (ambiance != null) ratingMap.put("ambiance", ambiance);
+        if (overall != null) ratingMap.put("overall", overall);
+
+        params.put("rating", ratingMap);
+
+        when(restaurantService.getRestaurant(restaurantId)).thenReturn(restaurant);
+
+        ResponseException exception = assertThrows(ResponseException.class, () -> reviewController.addReview(restaurantId, params));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("bad parameter type", exception.getMessage());
+        verify(reviewService, never()).addReview(anyInt(), any(Rating.class), anyString());
+    }
+
+    private Double parseDoubleOrNull(String value) {
+        if ("null".equals(value)) {
+            return null;
+        } else {
+            return Double.valueOf(value);
+        }
     }
 }
