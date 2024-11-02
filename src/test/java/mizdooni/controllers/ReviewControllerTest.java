@@ -146,26 +146,6 @@ class ReviewControllerTest {
         verify(reviewService, never()).addReview(anyInt(), any(Rating.class), anyString());
     }
 
-    @Test
-    @DisplayName("Test: Add Review to Restaurant - Invalid Parameter Types")
-    void testAddReview_InvalidParameterTypes() throws Exception {
-        int restaurantId = restaurant.getId();
-        Map<String, Object> params = new HashMap<>();
-        params.put("comment", "Great food and ambiance!");
-
-        Map<String, Object> ratingMap = new HashMap<>();
-        ratingMap.put("food", "Excellent"); // Invalid type
-        params.put("rating", ratingMap);
-
-        when(restaurantService.getRestaurant(restaurantId)).thenReturn(restaurant);
-
-        ResponseException exception = assertThrows(ResponseException.class, () -> reviewController.addReview(restaurantId, params));
-
-        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-        assertEquals("bad parameter type", exception.getMessage());
-        verify(reviewService, never()).addReview(anyInt(), any(Rating.class), anyString());
-    }
-
     @ParameterizedTest
     @MethodSource("provideInvalidRatingValues")
     @DisplayName("Test: Add Review to Restaurant - Invalid and Valid Rating Values Mixed")

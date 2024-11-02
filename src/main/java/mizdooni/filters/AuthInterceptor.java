@@ -17,7 +17,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         this.userService = userService;
     }
 
-    @Override
+//    @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if (!(handler instanceof HandlerMethod)) {
             return true;
