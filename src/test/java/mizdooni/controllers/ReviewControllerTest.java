@@ -11,7 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -165,34 +167,18 @@ class ReviewControllerTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
-            //null
-            "null, 4.0, 3.0, 4.5",
-            "4.0, null, 3.0, 4.5",
-            "4.0, 4.0, null, 4.5",
-            "4.0, 4.0, 3.0, null",
-            //string
-            "invalid, 4.0, 3.0, 4.5",
-            "4.0, invalid, 3.0, 4.5",
-            "4.0, 4.0, invalid, 4.5",
-            "4.0, 4.0, 3.0, invalid"
-    })
-    @DisplayName("Test: Add Review to Restaurant - Invalid Rating Values")
-    void testAddReview_InvalidRatingValues(String foodStr, String serviceStr, String ambianceStr, String overallStr) throws Exception {
+    @MethodSource("provideInvalidRatingValues")
+    @DisplayName("Test: Add Review to Restaurant - Invalid and Valid Rating Values Mixed")
+    void testAddReview_InvalidRatingValues(String food, String service, String ambiance, String overall) throws Exception {
         int restaurantId = restaurant.getId();
         Map<String, Object> params = new HashMap<>();
-        params.put("comment", "Review with invalid ratings.");
+        params.put("comment", "Review with mixed valid and invalid ratings.");
 
-        Map<String, Number> ratingMap = new HashMap<>();
-        Double food = parseDoubleOrNull(foodStr);
-        Double service = parseDoubleOrNull(serviceStr);
-        Double ambiance = parseDoubleOrNull(ambianceStr);
-        Double overall = parseDoubleOrNull(overallStr);
-
-        if (food != null) ratingMap.put("food", food);
-        if (service != null) ratingMap.put("service", service);
-        if (ambiance != null) ratingMap.put("ambiance", ambiance);
-        if (overall != null) ratingMap.put("overall", overall);
+        Map<String, Object> ratingMap = new HashMap<>();
+        ratingMap.put("food", parseToDoubleOrKeepString(food));
+        ratingMap.put("service", parseToDoubleOrKeepString(service));
+        ratingMap.put("ambiance", parseToDoubleOrKeepString(ambiance));
+        ratingMap.put("overall", parseToDoubleOrKeepString(overall));
 
         params.put("rating", ratingMap);
 
@@ -205,11 +191,24 @@ class ReviewControllerTest {
         verify(reviewService, never()).addReview(anyInt(), any(Rating.class), anyString());
     }
 
-    private Double parseDoubleOrNull(String value) {
-        if ("null".equals(value)) {
-            return null;
-        } else {
-            return Double.valueOf(value);
+    private static Stream<Arguments> provideInvalidRatingValues() {
+        return Stream.of(
+                Arguments.of("null", "4.0", "3.0", "4.5"),
+                Arguments.of("4.0", "null", "3.0", "4.5"),
+                Arguments.of("4.0", "4.0", "null", "4.5"),
+                Arguments.of("4.0", "4.0", "3.0", "null"),
+                Arguments.of("invalid", "4.0", "3.0", "4.5"),
+                Arguments.of("4.0", "invalid", "3.0", "4.5"),
+                Arguments.of("4.0", "4.0", "invalid", "4.5"),
+                Arguments.of("4.0", "4.0", "3.0", "invalid")
+        );
+    }
+
+    private Object parseToDoubleOrKeepString(String value) {
+        try {
+            return "null".equals(value) ? null : Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            return value; // Keep as String if it’s an invalid double
         }
     }
 }
