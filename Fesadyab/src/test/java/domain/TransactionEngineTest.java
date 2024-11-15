@@ -8,6 +8,15 @@ public class TransactionEngineTest {
 
     private TransactionEngine engine;
 
+    private Transaction createTransaction(int transactionId, int accountId, int amount, boolean isDebit) {
+        Transaction txn = new Transaction();
+        txn.setTransactionId(transactionId);
+        txn.setAccountId(accountId);
+        txn.setAmount(amount);
+        txn.setIsDebit(isDebit);
+        return txn;
+    }
+
     @BeforeEach
     public void setUp() {
         engine = new TransactionEngine();
@@ -21,9 +30,7 @@ public class TransactionEngineTest {
 
     @Test
     public void testGetAverageTransactionAmountByAccount_NoMatchingAccount() {
-        Transaction txn1 = new Transaction();
-        txn1.setAccountId(2);
-        txn1.setAmount(100);
+        Transaction txn1 = createTransaction(1, 2, 100, false);
         engine.transactionHistory.add(txn1);
 
         int avg = engine.getAverageTransactionAmountByAccount(1);
@@ -32,12 +39,8 @@ public class TransactionEngineTest {
 
     @Test
     public void testGetAverageTransactionAmountByAccount_WithMatchingAccount() {
-        Transaction txn1 = new Transaction();
-        txn1.setAccountId(1);
-        txn1.setAmount(100);
-        Transaction txn2 = new Transaction();
-        txn2.setAccountId(1);
-        txn2.setAmount(200);
+        Transaction txn1 = createTransaction(1, 1, 100, false);
+        Transaction txn2 = createTransaction(2, 1, 200, false);
         engine.transactionHistory.add(txn1);
         engine.transactionHistory.add(txn2);
 
@@ -53,9 +56,7 @@ public class TransactionEngineTest {
 
     @Test
     public void testGetTransactionPatternAboveThreshold_SingleTransaction() {
-        Transaction txn1 = new Transaction();
-        txn1.setTransactionId(1);
-        txn1.setAmount(2000);
+        Transaction txn1 = createTransaction(1, 1, 2000, false);
         engine.transactionHistory.add(txn1);
 
         int pattern = engine.getTransactionPatternAboveThreshold(1000);
@@ -64,16 +65,9 @@ public class TransactionEngineTest {
 
     @Test
     public void testGetTransactionPatternAboveThreshold_PatternExists() {
-        Transaction txn1 = new Transaction();
-        txn1.setTransactionId(1);
-        txn1.setAmount(1500);
-        Transaction txn2 = new Transaction();
-        txn2.setTransactionId(2);
-        txn2.setAmount(2000);
-        Transaction txn3 = new Transaction();
-        txn3.setTransactionId(3);
-        txn3.setAmount(2500);
-
+        Transaction txn1 = createTransaction(1, 1, 1500, false);
+        Transaction txn2 = createTransaction(2, 1, 2000, false);
+        Transaction txn3 = createTransaction(3, 1, 2500, false);
         engine.transactionHistory.add(txn1);
         engine.transactionHistory.add(txn2);
         engine.transactionHistory.add(txn3);
@@ -84,16 +78,9 @@ public class TransactionEngineTest {
 
     @Test
     public void testGetTransactionPatternAboveThreshold_NoPattern() {
-        Transaction txn1 = new Transaction();
-        txn1.setTransactionId(1);
-        txn1.setAmount(1500);
-        Transaction txn2 = new Transaction();
-        txn2.setTransactionId(2);
-        txn2.setAmount(2100);
-        Transaction txn3 = new Transaction();
-        txn3.setTransactionId(3);
-        txn3.setAmount(2500);
-
+        Transaction txn1 = createTransaction(1, 1, 1500, false);
+        Transaction txn2 = createTransaction(2, 1, 2100, false);
+        Transaction txn3 = createTransaction(3, 1, 2500, false);
         engine.transactionHistory.add(txn1);
         engine.transactionHistory.add(txn2);
         engine.transactionHistory.add(txn3);
@@ -103,45 +90,50 @@ public class TransactionEngineTest {
     }
 
     @Test
-    public void testDetectFraudulentTransaction_NoTransactions() {
-        Transaction txn = new Transaction();
-        txn.setAccountId(1);
-        txn.setAmount(1000);
-        txn.setIsDebit(true);
-
+        public void testDetectFraudulentTransaction_NoTransactions() {
+        Transaction txn = createTransaction(1, 1, 1000, true);
         int fraudScore = engine.detectFraudulentTransaction(txn);
         assertEquals(1000, fraudScore);
     }
 
     @Test
     public void testDetectFraudulentTransaction_NotDebit() {
-        Transaction existingTxn = new Transaction();
-        existingTxn.setAccountId(1);
-        existingTxn.setAmount(500);
+        Transaction existingTxn = createTransaction(1, 1, 500, false);
         engine.transactionHistory.add(existingTxn);
 
-        Transaction txn = new Transaction();
-        txn.setAccountId(1);
-        txn.setAmount(2000);
-        txn.setIsDebit(false);
-
+        Transaction txn = createTransaction(2, 1, 2000, false);
         int fraudScore = engine.detectFraudulentTransaction(txn);
         assertEquals(0, fraudScore);
     }
 
     @Test
-    public void testDetectFraudulentTransaction_DebitExcessive() {
-        Transaction existingTxn = new Transaction();
-        existingTxn.setAccountId(1);
-        existingTxn.setAmount(500);
-        engine.transactionHistory.add(existingTxn);
+    public void testDetectFraudulentTransaction_ExcessiveDebit() {
+        Transaction txn1 = createTransaction(1, 1, 250, false);
+        Transaction txn2 = createTransaction(2, 1, 50, false);
+        engine.transactionHistory.add(txn1);
+        engine.transactionHistory.add(txn2);
 
-        Transaction txn = new Transaction();
-        txn.setAccountId(1);
-        txn.setAmount(1100);
-        txn.setIsDebit(true);
+        Transaction txn3 = createTransaction(3, 1, 1500, true);
 
-        int fraudScore = engine.detectFraudulentTransaction(txn);
+        engine.transactionHistory.add(txn3);
+        int fraudScore = engine.detectFraudulentTransaction(txn3);
+        assertEquals(300, fraudScore);
+    }
+
+    @Test
+    public void testDetectFraudulentTransaction_ExcessiveDebitSkip() {
+        Transaction txn1 = createTransaction(1, 1, 350, false);
+        Transaction txn2 = createTransaction(2, 1, 550, false);
+        engine.transactionHistory.add(txn1);
+        engine.transactionHistory.add(txn2);
+
+        Transaction txn3 = createTransaction(3, 1, 1500, true);
+
+        engine.transactionHistory.add(txn3);
+        int fraudScore = engine.detectFraudulentTransaction(txn3);
+        assertEquals(0, fraudScore);
+    }
+
         assertEquals(100, fraudScore);
     }
 
