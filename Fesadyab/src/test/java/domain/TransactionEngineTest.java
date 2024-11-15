@@ -8,15 +8,6 @@ public class TransactionEngineTest {
 
     private TransactionEngine engine;
 
-    private Transaction createTransaction(int transactionId, int accountId, int amount, boolean isDebit) {
-        Transaction txn = new Transaction();
-        txn.setTransactionId(transactionId);
-        txn.setAccountId(accountId);
-        txn.setAmount(amount);
-        txn.setIsDebit(isDebit);
-        return txn;
-    }
-
     @BeforeEach
     public void setUp() {
         engine = new TransactionEngine();
@@ -77,6 +68,19 @@ public class TransactionEngineTest {
     }
 
     @Test
+    public void testGetTransactionPatternAboveThreshold_PatternExistsWhileOneTransactionIsUnderThreshold() {
+        Transaction txn1 = createTransaction(1, 1, 1200, false);
+        Transaction txn2 = createTransaction(2, 1, 500, false);
+        Transaction txn3 = createTransaction(3, 1, 1500, false);
+        engine.transactionHistory.add(txn1);
+        engine.transactionHistory.add(txn2);
+        engine.transactionHistory.add(txn3);
+
+        int pattern = engine.getTransactionPatternAboveThreshold(1000);
+        assertEquals(300, pattern);
+    }
+
+    @Test
     public void testGetTransactionPatternAboveThreshold_NoPattern() {
         Transaction txn1 = createTransaction(1, 1, 1500, false);
         Transaction txn2 = createTransaction(2, 1, 2100, false);
@@ -103,34 +107,6 @@ public class TransactionEngineTest {
 
         Transaction txn = createTransaction(2, 1, 2000, false);
         int fraudScore = engine.detectFraudulentTransaction(txn);
-        assertEquals(0, fraudScore);
-    }
-
-    @Test
-    public void testDetectFraudulentTransaction_ExcessiveDebit() {
-        Transaction txn1 = createTransaction(1, 1, 250, false);
-        Transaction txn2 = createTransaction(2, 1, 50, false);
-        engine.transactionHistory.add(txn1);
-        engine.transactionHistory.add(txn2);
-
-        Transaction txn3 = createTransaction(3, 1, 1500, true);
-
-        engine.transactionHistory.add(txn3);
-        int fraudScore = engine.detectFraudulentTransaction(txn3);
-        assertEquals(300, fraudScore);
-    }
-
-    @Test
-    public void testDetectFraudulentTransaction_ExcessiveDebitSkip() {
-        Transaction txn1 = createTransaction(1, 1, 350, false);
-        Transaction txn2 = createTransaction(2, 1, 550, false);
-        engine.transactionHistory.add(txn1);
-        engine.transactionHistory.add(txn2);
-
-        Transaction txn3 = createTransaction(3, 1, 1500, true);
-
-        engine.transactionHistory.add(txn3);
-        int fraudScore = engine.detectFraudulentTransaction(txn3);
         assertEquals(0, fraudScore);
     }
 
@@ -171,4 +147,43 @@ public class TransactionEngineTest {
         int fraudScore = engine.addTransactionAndDetectFraud(txn3);
         assertEquals(500, fraudScore);
     }
+
+
+    @Test
+    public void testDetectFraudulentTransaction_ExcessiveDebit() {
+        Transaction txn1 = createTransaction(1, 1, 250, false);
+        Transaction txn2 = createTransaction(2, 1, 50, false);
+        engine.transactionHistory.add(txn1);
+        engine.transactionHistory.add(txn2);
+
+        Transaction txn3 = createTransaction(3, 1, 1500, true);
+
+        engine.transactionHistory.add(txn3);
+        int fraudScore = engine.detectFraudulentTransaction(txn3);
+        assertEquals(300, fraudScore);
+    }
+
+    @Test
+    public void testDetectFraudulentTransaction_ExcessiveDebitSkip() {
+        Transaction txn1 = createTransaction(1, 1, 350, false);
+        Transaction txn2 = createTransaction(2, 1, 550, false);
+        engine.transactionHistory.add(txn1);
+        engine.transactionHistory.add(txn2);
+
+        Transaction txn3 = createTransaction(3, 1, 1500, true);
+
+        engine.transactionHistory.add(txn3);
+        int fraudScore = engine.detectFraudulentTransaction(txn3);
+        assertEquals(0, fraudScore);
+    }
+
+    private Transaction createTransaction(int transactionId, int accountId, int amount, boolean isDebit) {
+        Transaction txn = new Transaction();
+        txn.setTransactionId(transactionId);
+        txn.setAccountId(accountId);
+        txn.setAmount(amount);
+        txn.setIsDebit(isDebit);
+        return txn;
+    }
+
 }
