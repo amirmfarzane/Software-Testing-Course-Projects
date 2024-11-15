@@ -102,4 +102,47 @@ public class TransactionEngineTest {
         assertEquals(0, pattern);
     }
 
+    @Test
+    public void testDetectFraudulentTransaction_NoTransactions() {
+        Transaction txn = new Transaction();
+        txn.setAccountId(1);
+        txn.setAmount(1000);
+        txn.setIsDebit(true);
+
+        int fraudScore = engine.detectFraudulentTransaction(txn);
+        assertEquals(1000, fraudScore);
+    }
+
+    @Test
+    public void testDetectFraudulentTransaction_NotDebit() {
+        Transaction existingTxn = new Transaction();
+        existingTxn.setAccountId(1);
+        existingTxn.setAmount(500);
+        engine.transactionHistory.add(existingTxn);
+
+        Transaction txn = new Transaction();
+        txn.setAccountId(1);
+        txn.setAmount(2000);
+        txn.setIsDebit(false);
+
+        int fraudScore = engine.detectFraudulentTransaction(txn);
+        assertEquals(0, fraudScore);
+    }
+
+    @Test
+    public void testDetectFraudulentTransaction_DebitExcessive() {
+        Transaction existingTxn = new Transaction();
+        existingTxn.setAccountId(1);
+        existingTxn.setAmount(500);
+        engine.transactionHistory.add(existingTxn);
+
+        Transaction txn = new Transaction();
+        txn.setAccountId(1);
+        txn.setAmount(1100);
+        txn.setIsDebit(true);
+
+        int fraudScore = engine.detectFraudulentTransaction(txn);
+        assertEquals(100, fraudScore);
+    }
+
 }
