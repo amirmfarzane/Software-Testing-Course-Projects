@@ -18,4 +18,8 @@ public class Transaction {
         }
         return false;
     }
+
+    public void setIsDebit(boolean b) {
+        isDebit = b;
+    }
 }
