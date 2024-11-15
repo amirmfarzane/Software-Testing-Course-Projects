@@ -134,7 +134,41 @@ public class TransactionEngineTest {
         assertEquals(0, fraudScore);
     }
 
+    @Test
+    public void testAddTransactionAndDetectFraud_TransactionExists() {
+        Transaction txn = createTransaction(1, 1, 1000, true);
+        engine.transactionHistory.add(txn);
+
+        int fraudScore = engine.addTransactionAndDetectFraud(txn);
+        assertEquals(0, fraudScore);
+    }
+
+    @Test
+    public void testAddTransactionAndDetectFraud_NoFraud() {
+        Transaction txn = createTransaction(2, 1, 500, true);
+        int fraudScore = engine.addTransactionAndDetectFraud(txn);
+        assertEquals(500, fraudScore);
+    }
+
+    @Test
+    public void testAddTransactionAndDetectFraud_FraudulentTransaction() {
+        Transaction existingTxn = createTransaction(1, 1, 500, false);
+        engine.transactionHistory.add(existingTxn);
+
+        Transaction txn = createTransaction(2, 1, 1100, true);
+        int fraudScore = engine.addTransactionAndDetectFraud(txn);
         assertEquals(100, fraudScore);
     }
 
+    @Test
+    public void testAddTransactionAndDetectFraud_FraudulentPattern() {
+        Transaction txn1 = createTransaction(1, 1, 1500, false);
+        Transaction txn2 = createTransaction(2, 1, 2000, false);
+        engine.transactionHistory.add(txn1);
+        engine.transactionHistory.add(txn2);
+
+        Transaction txn3 = createTransaction(3, 1, 2500, false);
+        int fraudScore = engine.addTransactionAndDetectFraud(txn3);
+        assertEquals(500, fraudScore);
+    }
 }
