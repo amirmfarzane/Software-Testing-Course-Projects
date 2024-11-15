@@ -35,4 +35,18 @@ public class TransactionTest {
         assertFalse(txn1.equals(txn2));
     }
 
+    @Test
+    public void testEqualsNull() {
+        Transaction txn = new Transaction();
+        txn.setTransactionId(1);
+        assertFalse(txn.equals(null));
+    }
+
+    @Test
+    public void testEqualsDifferentObjectType() {
+        Transaction txn = new Transaction();
+        txn.setTransactionId(1);
+        String str = "test";
+        assertFalse(txn.equals(str));
+    }
 }
