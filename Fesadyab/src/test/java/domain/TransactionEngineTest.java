@@ -45,4 +45,61 @@ public class TransactionEngineTest {
         assertEquals(150, avg);
     }
 
+    @Test
+    public void testGetTransactionPatternAboveThreshold_EmptyHistory() {
+        int pattern = engine.getTransactionPatternAboveThreshold(1000);
+        assertEquals(0, pattern);
+    }
+
+    @Test
+    public void testGetTransactionPatternAboveThreshold_SingleTransaction() {
+        Transaction txn1 = new Transaction();
+        txn1.setTransactionId(1);
+        txn1.setAmount(2000);
+        engine.transactionHistory.add(txn1);
+
+        int pattern = engine.getTransactionPatternAboveThreshold(1000);
+        assertEquals(0, pattern);
+    }
+
+    @Test
+    public void testGetTransactionPatternAboveThreshold_PatternExists() {
+        Transaction txn1 = new Transaction();
+        txn1.setTransactionId(1);
+        txn1.setAmount(1500);
+        Transaction txn2 = new Transaction();
+        txn2.setTransactionId(2);
+        txn2.setAmount(2000);
+        Transaction txn3 = new Transaction();
+        txn3.setTransactionId(3);
+        txn3.setAmount(2500);
+
+        engine.transactionHistory.add(txn1);
+        engine.transactionHistory.add(txn2);
+        engine.transactionHistory.add(txn3);
+
+        int pattern = engine.getTransactionPatternAboveThreshold(1000);
+        assertEquals(500, pattern);
+    }
+
+    @Test
+    public void testGetTransactionPatternAboveThreshold_NoPattern() {
+        Transaction txn1 = new Transaction();
+        txn1.setTransactionId(1);
+        txn1.setAmount(1500);
+        Transaction txn2 = new Transaction();
+        txn2.setTransactionId(2);
+        txn2.setAmount(2100);
+        Transaction txn3 = new Transaction();
+        txn3.setTransactionId(3);
+        txn3.setAmount(2500);
+
+        engine.transactionHistory.add(txn1);
+        engine.transactionHistory.add(txn2);
+        engine.transactionHistory.add(txn3);
+
+        int pattern = engine.getTransactionPatternAboveThreshold(1000);
+        assertEquals(0, pattern);
+    }
+
 }
