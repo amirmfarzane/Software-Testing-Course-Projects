@@ -17,4 +17,22 @@ public class TransactionTest {
         assertTrue(txn.equals(txn));
     }
 
+    @Test
+    public void testEqualsSameTransactionId() {
+        Transaction txn1 = new Transaction();
+        txn1.setTransactionId(1);
+        Transaction txn2 = new Transaction();
+        txn2.setTransactionId(1);
+        assertTrue(txn1.equals(txn2));
+    }
+
+    @Test
+    public void testEqualsDifferentTransactionId() {
+        Transaction txn1 = new Transaction();
+        txn1.setTransactionId(1);
+        Transaction txn2 = new Transaction();
+        txn2.setTransactionId(2);
+        assertFalse(txn1.equals(txn2));
+    }
+
 }
