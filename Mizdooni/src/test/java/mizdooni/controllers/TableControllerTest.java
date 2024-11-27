@@ -146,7 +146,7 @@ class TableControllerTest {
     }
 
     @ParameterizedTest
-    @CsvSource(value = {"as", "2.3"})
+    @CsvSource(value = {"as", "2.3", "-1"})
     void Given_InvalidSeatNumber_When_AddingTable_Then_Fails(String seatsNumber) throws Exception {
         int restaurantId = restaurant.getId();
         String requestBody = objectMapper.writeValueAsString(Collections.singletonMap("seatsNumber", seatsNumber));
