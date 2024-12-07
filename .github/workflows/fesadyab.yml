@@ -30,6 +30,6 @@ jobs:
           cd Fesadyab
           mvn clean install
 
-      # Run tests
-      - name: Run tests
-        run: mvn test -f Fesadyab/pom.xml
+        run: |
+          cd Fesadyab
+          mvn test
