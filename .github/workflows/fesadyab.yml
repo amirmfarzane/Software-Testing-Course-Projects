@@ -24,12 +24,9 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      # Build the project using Maven
-      - name: Build with Maven
-        run: |
-          cd Fesadyab
-          mvn clean install
-      - name: Test
-        run: |
-          cd Fesadyab
-          mvn test
+      - name: Run Fesadyab test
+        working-directory: Fesadyab
+        run: mvn -ntp clean test
+      - name: Run Mizdooni test
+        working-directory: Mizdooni
+        run: mvn -ntp clean test
