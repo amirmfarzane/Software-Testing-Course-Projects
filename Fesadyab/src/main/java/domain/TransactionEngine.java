@@ -57,7 +57,7 @@ public class TransactionEngine {
     }
 
     int detectFraudulentTransaction(Transaction txn) {
-        var averageAmount = getAverageTransactionAmountByAccount(txn.accountId);
+        int averageAmount = getAverageTransactionAmountByAccount(txn.accountId);
 
         if (txn.isDebit && txn.amount > 2 * averageAmount) {
             return txn.amount - 2 * averageAmount;  // Excessive debit, marked as suspicious
