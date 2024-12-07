@@ -23,10 +23,10 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: maven
 
       - name: Run Fesadyab test
-        working-directory: Fesadyab
-        run: mvn -X clean test
+        run: mvn -X clean test -f ./Fesadyab
       - name: Run Mizdooni test
         working-directory: Mizdooni
-        run: mvn -X clean test
+        run: mvn -X clean test -f ./Mizdooni
