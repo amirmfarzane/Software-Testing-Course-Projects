@@ -1,37 +1,4 @@
-# name: Fesadyab Build and Test
-
-# on:
-#   push:
-#     branches:
-#       - main
-#   pull_request:
-#     branches:
-#       - main
-
-# jobs:
-#   build-and-test:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       # Checkout repository
-#       - name: Checkout code
-#         uses: actions/checkout@v3
-
-#       # Set up Java environment
-#       - name: Set up JDK
-#         uses: actions/setup-java@v3
-#         with:
-#           distribution: 'temurin'
-#           java-version: '21'
-#           cache: maven
-
-#       - name: Run Fesadyab test
-#         run: mvn -X clean test -f ./Fesadyab
-#       - name: Run Mizdooni test
-#         working-directory: Mizdooni
-#         run: mvn -X clean test -f ./Mizdooni
-
-name: Software Testing Project
+name: Fesadyab Build and Test
 
 on:
   push:
@@ -42,23 +9,22 @@ on:
       - main
 
 jobs:
-  test:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Set up JDK 21
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '21'
           distribution: 'temurin'
+          java-version: '21'
           cache: maven
 
-      - name: Run Fesadyab tests
-        working-directory: Fesadyab
-        run: mvn -B clean test
-
-      - name: Run Mizdooni tests
+      - name: Run Fesadyab test
+        run: mvn test -f ./Fesadyab
+      - name: Run Mizdooni test
         working-directory: Mizdooni
-        run: mvn -B clean test
+        run: mvn test -f ./Mizdooni
