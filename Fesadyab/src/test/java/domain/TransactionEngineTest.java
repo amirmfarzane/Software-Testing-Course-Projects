@@ -177,6 +177,34 @@ public class TransactionEngineTest {
         assertEquals(0, fraudScore);
     }
 
+    @Test
+    public void testDetectFraudulentTransaction_MoreThanDubleButNotDebit() {
+        Transaction txn1 = createTransaction(1, 1, 250, false);
+        Transaction txn2 = createTransaction(2, 1, 50, false);
+        engine.transactionHistory.add(txn1);
+        engine.transactionHistory.add(txn2);
+
+        Transaction txn3 = createTransaction(3, 1, 1500, false);
+
+        engine.transactionHistory.add(txn3);
+        int fraudScore = engine.detectFraudulentTransaction(txn3);
+        assertEquals(0, fraudScore);
+    }
+
+    @Test
+    public void testDetectFraudulentTransaction_FixDubleButAndDebit() {
+        Transaction txn1 = createTransaction(1, 1, 250, false);
+        Transaction txn2 = createTransaction(2, 1, 250, false);
+        engine.transactionHistory.add(txn1);
+        engine.transactionHistory.add(txn2);
+
+        Transaction txn3 = createTransaction(3, 1, 500, true);
+
+        engine.transactionHistory.add(txn3);
+        int fraudScore = engine.detectFraudulentTransaction(txn3);
+        assertEquals(0, fraudScore);
+    }
+
     private Transaction createTransaction(int transactionId, int accountId, int amount, boolean isDebit) {
         Transaction txn = new Transaction();
         txn.setTransactionId(transactionId);
@@ -186,4 +214,38 @@ public class TransactionEngineTest {
         return txn;
     }
 
+    @Test
+    public void testGetTransactionPatternAboveThreshold_TwoTransactionsOneAbove() {
+        Transaction txn1 = createTransaction(1, 1, 1200, false);
+        Transaction txn2 = createTransaction(2, 1, 500, false);
+        engine.transactionHistory.add(txn1);
+        engine.transactionHistory.add(txn2);
+
+        int pattern = engine.getTransactionPatternAboveThreshold(1000);
+        assertEquals(0, pattern);
+    }
+
+    @Test
+    public void testDetectFraudulentTransaction_AtBoundary() {
+        Transaction existingTxn = createTransaction(1, 1, 500, false);
+        engine.transactionHistory.add(existingTxn);
+
+        Transaction txn = createTransaction(2, 1, 1000, true);
+        int fraudScore = engine.detectFraudulentTransaction(txn);
+        assertEquals(0, fraudScore);
+    }
+
+    @Test
+    public void testGetTransactionPatternAboveThreshold_NearThreshold() {
+        Transaction txn1 = createTransaction(1, 1, 999, false);
+        Transaction txn2 = createTransaction(2, 1, 1000, false);
+        engine.transactionHistory.add(txn1);
+        engine.transactionHistory.add(txn2);
+
+        int pattern = engine.getTransactionPatternAboveThreshold(1000);
+        assertEquals(0, pattern);
+    }
+
 }
+
+
