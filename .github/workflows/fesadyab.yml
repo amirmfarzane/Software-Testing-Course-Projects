@@ -25,8 +25,8 @@ jobs:
           java-version: '17'
           cache: maven
 
-      - name: Run Fesadyab test
-        run: mvn test -f ./Fesadyab/pom.xml
       - name: Run Mizdooni test
         working-directory: Mizdooni
-        run: mvn test -f ./Mizdooni/pom.xml
+        run: mvn -ntp test
+      - name: Run Fesadyab test
+        run: mvn test -f ./Fesadyab/pom.xml
