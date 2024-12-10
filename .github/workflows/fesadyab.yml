@@ -29,4 +29,5 @@ jobs:
         working-directory: Mizdooni
         run: mvn -ntp test
       - name: Run Fesadyab test
-        run: mvn test -f ./Fesadyab/pom.xml
+        working-directory: Fesadyab
+        run: mvn -ntp test
