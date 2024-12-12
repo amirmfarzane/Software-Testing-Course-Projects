@@ -1,26 +1,32 @@
-
-name: Java CI with Maven
+name: Fesadyab Build and Test
 
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "master" ]
+    branches:
+      - main
 
 jobs:
-  build:
-
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'oracle'
-        cache: maven
-    - name: Run FesadyabTests
-      run: cd Fesadyab && mvn test -B -f pom.xml
-    - name: Run Mizdooni
-      run: cd Mizdooni && mvn test -B -f pom.xml
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: maven
+
+      - name: Run Mizdooni test
+        working-directory: Mizdooni
+        run: mvn test
+
+      - name: Run Fesadyab test
+        working-directory: Fesadyab
+        run: mvn test
