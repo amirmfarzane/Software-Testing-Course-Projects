@@ -19,13 +19,14 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
-          distribution: 'oracle'
+          distribution: 'temurin'
           java-version: '21'
           cache: maven
 
       - name: Run Mizdooni test
         working-directory: Mizdooni
-        run: mvn -ntp -B -f test
+        run: mvn test
+
       - name: Run Fesadyab test
         working-directory: Fesadyab
-        run: mvn -ntp -B -f test
+        run: mvn test
