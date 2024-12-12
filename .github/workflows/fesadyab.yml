@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - main
-      - workflow
   pull_request:
     branches:
       - main
-      - workflow
 
 jobs:
   build-and-test:
@@ -16,18 +14,18 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up JDK
+      - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
+          distribution: 'oracle'
           java-version: '21'
           cache: maven
 
       - name: Run Mizdooni test
         working-directory: Mizdooni
-        run: mvn -ntp test
+        run: mvn -ntp -B -f test
       - name: Run Fesadyab test
         working-directory: Fesadyab
-        run: mvn -ntp test
+        run: mvn -ntp -B -f test
