@@ -20,13 +20,18 @@ public class RestaurantScenarioTest {
     private User client1;
     private User client2;
 
+    @Given("clients exist")
+    public void clientsExist(){
+        client1 = new User("client1", "client1Pass", "client1@example.com", address, User.Role.client);
+        client2 = new User("client2", "client2Pass", "client2@example.com", address, User.Role.client);
+    }
+
     @Given("a restaurant exists")
     public void aRestaurantExists() {
-        address = new Address("789 Maple Ave", "Tehran", "45678");
-        User manager = new User("managerUser", "managerPass", "manager@example.com", address, User.Role.manager);
+        address = new Address("Enghelab square", "Tehran", "45678");
         restaurant = new Restaurant(
                 "Shila fastfood",
-                manager,
+                client1,
                 "Fastfood",
                 LocalTime.of(9, 0),
                 LocalTime.of(23, 0),
@@ -36,24 +41,8 @@ public class RestaurantScenarioTest {
         );
     }
 
-    @And("the following reviews are added to the restaurant:")
-    public void theFollowingReviewsAreAddedToTheRestaurant(io.cucumber.datatable.DataTable dataTable) {
-        dataTable.asMaps().forEach(row -> {
-            String username = row.get("user");
-            float food = Float.parseFloat(row.get("food"));
-            float service = Float.parseFloat(row.get("service"));
-            float ambiance = Float.parseFloat(row.get("ambiance"));
-            float overall = Float.parseFloat(row.get("overall"));
-
-            User client = new User(username, "password", username + "@example.com", address, User.Role.client);
-            Review review = new Review(client, new Rating(food, service, ambiance, overall), "Good review!", null);
-            restaurant.addReview(review);
-        });
-    }
-
-    @When("I calculate the average rating")
-    public void iCalculateTheAverageRating() {
-        // Average rating is implicitly calculated inside `Restaurant` class methods
+    @When("Calculate the average rating")
+    public void calculateTheAverageRating() {
     }
 
     @Then("the average food rating should be {double}")
@@ -76,18 +65,37 @@ public class RestaurantScenarioTest {
         assertEquals(expectedOverallRating, restaurant.getAverageRating().overall, 0.01);
     }
 
+    @And("the following reviews are added to the restaurant:")
+    public void theFollowingReviewsAreAddedToTheRestaurant(io.cucumber.datatable.DataTable dataTable) {
+        dataTable.asMaps().forEach(row -> {
+            float food = Float.parseFloat(row.get("food"));
+            float service = Float.parseFloat(row.get("service"));
+            float ambiance = Float.parseFloat(row.get("ambiance"));
+            float overall = Float.parseFloat(row.get("overall"));
+            String client = row.get("user");
+
+
+            if(client.equals("client1")) {
+                Review review = new Review(client1, new Rating(food, service, ambiance, overall), "Good review!", null);
+                restaurant.addReview(review);
+            }
+            else if(client.equals("client2")){
+                Review review = new Review(client2, new Rating(food, service, ambiance, overall), "Good review!", null);
+                restaurant.addReview(review);
+            }
+        });
+    }
+
     @When("another review is added with the same user:")
     public void anotherReviewIsAddedWithTheSameUser(io.cucumber.datatable.DataTable dataTable) {
         dataTable.asMaps().forEach(row -> {
-            String username = row.get("user");
             float food = Float.parseFloat(row.get("food"));
             float service = Float.parseFloat(row.get("service"));
             float ambiance = Float.parseFloat(row.get("ambiance"));
             float overall = Float.parseFloat(row.get("overall"));
 
-            User client = new User(username, "password", username + "@example.com", address, User.Role.client);
             Review review = new Review(
-                    client,
+                    client1,
                     new Rating(food, service, ambiance, overall),
                     "Updated review comment",
                     LocalDateTime.now()
@@ -96,8 +104,8 @@ public class RestaurantScenarioTest {
         });
     }
 
-    @Then("the restaurant should contain only the updated review")
-    public void theRestaurantShouldContainOnlyTheUpdatedReviewFor(String username, io.cucumber.datatable.DataTable dataTable) {
+    @Then("the restaurant should contain only the last review for {string}:")
+    public void theRestaurantShouldContainOnlyTheLastReviewFor(String username, io.cucumber.datatable.DataTable dataTable) {
         var expectedRow = dataTable.asMaps().get(0);
         var updatedReview = restaurant.getReviews().stream()
                 .filter(review -> review.getUser().getUsername().equals(username))
@@ -112,5 +120,16 @@ public class RestaurantScenarioTest {
         assertEquals(Float.parseFloat(expectedRow.get("overall")), updatedReview.getRating().overall, 0.01);
     }
 
+    @When("no review added")
+    public void noReviewAdded(){
+    }
+
+    @Then("average rating is zero")
+    public void averageRatingIsZero() {
+        assertEquals(0, restaurant.getAverageRating().food, 0.01);
+        assertEquals(0, restaurant.getAverageRating().overall, 0.01);
+        assertEquals(0, restaurant.getAverageRating().service, 0.01);
+        assertEquals(0, restaurant.getAverageRating().ambiance, 0.01);
+    }
 
 }

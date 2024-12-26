@@ -5,12 +5,18 @@ Feature: Calculate Average Rating
 
   Scenario: Calculating Average Rating
     Given a restaurant exists
+    And clients exist
     And the following reviews are added to the restaurant:
       | user      | food | service | ambiance | overall |
       | client1   | 4    | 5       | 3        | 4       |
       | client2   | 3    | 4       | 5        | 3       |
-    When I calculate the average rating
+    When Calculate the average rating
     Then the average food rating should be 3.5
     And the average service rating should be 4.5
     And the average ambiance rating should be 4.0
     And the average overall rating should be 3.5
+
+  Scenario: Calculating Average Rating When No Review Submitted
+    Given a restaurant exists
+    When no review added
+    Then average rating is zero
